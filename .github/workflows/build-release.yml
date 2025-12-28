@@ -7,21 +7,6 @@ on:
         description: "Version to release (e.g., 1.1.1)"
         required: true
         type: string
-      build_windows:
-        description: "Build Windows desktop"
-        required: true
-        type: boolean
-        default: true
-      build_macos:
-        description: "Build macOS (ARM + Intel)"
-        required: true
-        type: boolean
-        default: true
-      build_android:
-        description: "Build Android APK (EAS)"
-        required: true
-        type: boolean
-        default: false
   push:
     tags:
       - "v*"
@@ -83,7 +68,6 @@ NOTES
           fi
 
   build-windows:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_windows }}
     needs: create-release
     runs-on: windows-latest
     steps:
@@ -151,7 +135,6 @@ NOTES
           fi
 
   build-macos:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_macos }}
     needs: create-release
     runs-on: macos-latest
     strategy:
@@ -236,7 +219,6 @@ NOTES
           fi
 
   build-android:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_android }}
     needs: create-release
     runs-on: ubuntu-latest
     steps:
