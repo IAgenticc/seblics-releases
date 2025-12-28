@@ -1,6 +1,12 @@
 name: Build Releases
 
-"on":
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., 1.1.1)"
+        required: true
+        type: string
   push:
     tags:
       - "v*"
@@ -21,7 +27,11 @@ jobs:
       - name: Get version
         id: get-version
         run: |
-          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Ensure release exists
         env:
@@ -37,6 +47,7 @@ jobs:
 | Platform | File |
 |----------|------|
 | Windows (64-bit) | Seblics_x.x.x_x64-setup.exe |
+| Windows (MSI) | Seblics_x.x.x_x64_en-US.msi |
 | macOS (Apple Silicon) | Seblics_x.x.x_aarch64.dmg |
 | macOS (Intel) | Seblics_x.x.x_x64.dmg |
 | Android (APK) | Seblics_x.x.x.apk |
@@ -117,10 +128,17 @@ NOTES
         shell: bash
         run: |
           EXE_FILE=$(find desktop/src-tauri/target/release/bundle/nsis -name "*.exe" | head -1)
+          MSI_FILE=$(find desktop/src-tauri/target/release/bundle/msi -name "*.msi" | head -1)
           if [ -n "$EXE_FILE" ]; then
             gh release upload "v${{ needs.create-release.outputs.version }}" "$EXE_FILE" --repo "${{ env.RELEASES_REPO }}" --clobber
           else
             echo "No exe file found!"
+            exit 1
+          fi
+          if [ -n "$MSI_FILE" ]; then
+            gh release upload "v${{ needs.create-release.outputs.version }}" "$MSI_FILE" --repo "${{ env.RELEASES_REPO }}" --clobber
+          else
+            echo "No msi file found!"
             exit 1
           fi
 
