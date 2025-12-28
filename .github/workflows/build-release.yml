@@ -1,6 +1,6 @@
 name: Build Releases
 
-"on":
+on:
   workflow_dispatch:
     inputs:
       version:
@@ -22,6 +22,9 @@ name: Build Releases
         required: true
         type: boolean
         default: false
+  push:
+    tags:
+      - "v*"
 
 env:
   RELEASES_REPO: IAgenticc/seblics-releases
@@ -39,7 +42,11 @@ jobs:
       - name: Get version
         id: get-version
         run: |
-          echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Ensure release exists
         env:
@@ -76,7 +83,7 @@ NOTES
           fi
 
   build-windows:
-    if: ${{ inputs.build_windows }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_windows }}
     needs: create-release
     runs-on: windows-latest
     steps:
@@ -144,7 +151,7 @@ NOTES
           fi
 
   build-macos:
-    if: ${{ inputs.build_macos }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_macos }}
     needs: create-release
     runs-on: macos-latest
     strategy:
@@ -229,7 +236,7 @@ NOTES
           fi
 
   build-android:
-    if: ${{ inputs.build_android }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_android }}
     needs: create-release
     runs-on: ubuntu-latest
     steps:
