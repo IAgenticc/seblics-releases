@@ -102,12 +102,12 @@ NOTES
         run: |
           python -c "from faster_whisper import WhisperModel; WhisperModel('base', device='cpu'); print('Model downloaded')"
 
-          $cache = "$env:USERPROFILE\.cache\huggingface\hub"
+          $cache = "$env:USERPROFILE\\.cache\\huggingface\\hub"
           $modelDir = Get-ChildItem -Path $cache -Filter "models--Systran--faster-whisper-base" -Recurse -Directory | Select-Object -First 1
-          $snapshot = Get-ChildItem -Path "$($modelDir.FullName)\snapshots" -Directory | Select-Object -First 1
+          $snapshot = Get-ChildItem -Path "$($modelDir.FullName)\\snapshots" -Directory | Select-Object -First 1
 
-          New-Item -ItemType Directory -Force -Path "models\faster-whisper-base"
-          Copy-Item -Path "$($snapshot.FullName)\*" -Destination "models\faster-whisper-base\" -Recurse
+          New-Item -ItemType Directory -Force -Path "models\\faster-whisper-base"
+          Copy-Item -Path "$($snapshot.FullName)\\*" -Destination "models\\faster-whisper-base\\" -Recurse
 
           python build_faster_whisper.py
 
