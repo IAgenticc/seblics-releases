@@ -1,12 +1,6 @@
 name: Build Releases
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to release (e.g., 1.1.1)"
-        required: true
-        type: string
   push:
     tags:
       - "v*"
@@ -27,11 +21,7 @@ jobs:
       - name: Get version
         id: get-version
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
-          else
-            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-          fi
+          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Ensure release exists
         env:
