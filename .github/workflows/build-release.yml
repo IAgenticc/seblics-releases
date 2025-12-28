@@ -48,25 +48,25 @@ jobs:
           VERSION="${{ steps.get-version.outputs.version }}"
           if ! gh release view "v${VERSION}" --repo "${{ env.RELEASES_REPO }}"; then
             cat > /tmp/release-notes.md << 'NOTES'
-            ## Seblics Desktop App
+## Seblics Desktop App
 
-            ### Downloads
+### Downloads
 
-            | Platform | File |
-            |----------|------|
-            | Windows (64-bit) | Seblics_x.x.x_x64-setup.exe |
-            | macOS (Apple Silicon) | Seblics_x.x.x_aarch64.dmg |
-            | macOS (Intel) | Seblics_x.x.x_x64.dmg |
-            | Android (APK) | Seblics_x.x.x.apk |
+| Platform | File |
+|----------|------|
+| Windows (64-bit) | Seblics_x.x.x_x64-setup.exe |
+| macOS (Apple Silicon) | Seblics_x.x.x_aarch64.dmg |
+| macOS (Intel) | Seblics_x.x.x_x64.dmg |
+| Android (APK) | Seblics_x.x.x.apk |
 
-            ### Installation
+### Installation
 
-            **Windows:** Download and run the .exe installer.
+**Windows:** Download and run the .exe installer.
 
-            **macOS:** Download the .dmg, open it, and drag Seblics to Applications.
+**macOS:** Download the .dmg, open it, and drag Seblics to Applications.
 
-            **Android:** Install the APK on your device.
-            NOTES
+**Android:** Install the APK on your device.
+NOTES
 
             gh release create "v${VERSION}" \
               --repo "${{ env.RELEASES_REPO }}" \
