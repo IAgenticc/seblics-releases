@@ -28,25 +28,11 @@ jobs:
         run: |
           VERSION="${{ steps.get-version.outputs.version }}"
           if ! gh release view "v${VERSION}" --repo "${{ env.RELEASES_REPO }}"; then
-            cat > /tmp/release-notes.md << 'NOTES'
-## Seblics Mobile App
-
-### Downloads
-
-| Platform | File |
-|----------|------|
-| Android (APK) | Seblics_x.x.x.apk |
-
-### Installation
-
-**Android:** Install the APK on your device.
-NOTES
-
             gh release create "v${VERSION}" \
               --repo "${{ env.RELEASES_REPO }}" \
               --title "Seblics v${VERSION}" \
               --draft \
-              --notes-file /tmp/release-notes.md
+              --notes "Seblics Android APK"
           fi
 
   build-android:
