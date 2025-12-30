@@ -1,0 +1,103 @@
+name: Build Android Release (Tag)
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  RELEASES_REPO: IAgenticc/seblics-releases
+  MOBILE_REPO: IAgenticc/seblics-mobile
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        id: get-version
+        run: |
+          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Ensure release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.get-version.outputs.version }}"
+          if ! gh release view "v${VERSION}" --repo "${{ env.RELEASES_REPO }}"; then
+            cat > /tmp/release-notes.md << 'NOTES'
+## Seblics Mobile App
+
+### Downloads
+
+| Platform | File |
+|----------|------|
+| Android (APK) | Seblics_x.x.x.apk |
+
+### Installation
+
+**Android:** Install the APK on your device.
+NOTES
+
+            gh release create "v${VERSION}" \
+              --repo "${{ env.RELEASES_REPO }}" \
+              --title "Seblics v${VERSION}" \
+              --draft \
+              --notes-file /tmp/release-notes.md
+          fi
+
+  build-android:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mobile repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MOBILE_REPO }}
+          token: ${{ secrets.RELEASES_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Build Android APK
+        env:
+          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
+        run: |
+          eas build -p android --profile preview --non-interactive --wait
+          eas build:download --latest --platform android --path android-release.apk
+
+      - name: Upload Android APK
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          if [ -f android-release.apk ]; then
+            gh release upload "v${{ needs.create-release.outputs.version }}" android-release.apk --repo "${{ env.RELEASES_REPO }}" --clobber
+          else
+            echo "No APK file found!"
+            exit 1
+          fi
+
+  publish-release:
+    needs: [create-release, build-android]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release edit "v${{ needs.create-release.outputs.version }}" \
+            --repo "${{ env.RELEASES_REPO }}" \
+            --draft=false
