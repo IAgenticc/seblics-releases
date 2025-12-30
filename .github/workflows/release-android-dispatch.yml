@@ -6,7 +6,6 @@ on:
       version:
         description: "Version to release (e.g., 1.1.5)"
         required: true
-        type: string
 
 env:
   RELEASES_REPO: IAgenticc/seblics-releases
